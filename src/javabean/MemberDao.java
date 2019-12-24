@@ -68,24 +68,9 @@ public class MemberDao {
 		
 	}	
 	// 로그인계정 
-//	public boolean loginMember(String id,String pwd){
-//		boolean b = false;
-//		LoginClass lc = new LoginClass();
-//		loginUser = lc.login(id, pwd);
-//		loginId="";
-//		if(loginUser != null) {
-//			b = true;
-//			this.loginId = loginUser.getId();
-//		}
-//		
-//		return b;
-//		
-//	}
-	
-	//
 
 	public  MemberDto login(String id, String pwd) {
-			String sql = "SEARCH ID, NAME, EMAIL, AUTH "
+			String sql = " SELECT ID, NAME, EMAIL, AUTH "
 					+ " FROM MEMBER "
 					+ " WHERE ID = ? AND PWD = ?";
 			

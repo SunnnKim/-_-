@@ -3,6 +3,8 @@ package view;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
@@ -10,6 +12,7 @@ import java.awt.event.WindowListener;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -20,7 +23,7 @@ import dto.BbsDto;
 import dto.MemberDto;
 import javabean.BbsDao;
 
-public class BbsListView extends Frame implements WindowListener, MouseListener {
+public class BbsListView extends JFrame implements MouseListener {
 
 	private JTable jtable;
 	private JScrollPane jscrPane;
@@ -80,59 +83,25 @@ public class BbsListView extends Frame implements WindowListener, MouseListener 
 		writeBtn = new JButton("글쓰기");
 		writeBtn.setBounds(510, 10, 100, 20);
 		add(writeBtn);
+		writeBtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				dispose();
+				new BbsWriteView();
+			}
+		});
 		
 		
 		setBounds(100, 100, 640, 480);
 		setBackground(new Color(0,0,128));
 		setVisible(true);
-		addWindowListener(this);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
 	
 	
-	@Override
-	public void windowOpened(WindowEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void windowClosing(WindowEvent e) {
-		// TODO Auto-generated method stub
-		System.exit(0);
-	}
-
-	@Override
-	public void windowClosed(WindowEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void windowIconified(WindowEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void windowDeiconified(WindowEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void windowActivated(WindowEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void windowDeactivated(WindowEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-
 
 	@Override
 	public void mouseClicked(MouseEvent e) {

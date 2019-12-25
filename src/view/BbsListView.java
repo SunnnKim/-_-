@@ -22,6 +22,7 @@ import javax.swing.table.DefaultTableModel;
 import dto.BbsDto;
 import dto.MemberDto;
 import javabean.BbsDao;
+import javabean.MemberDao;
 
 public class BbsListView extends JFrame implements MouseListener {
 
@@ -40,8 +41,9 @@ public class BbsListView extends JFrame implements MouseListener {
 	public BbsListView() {
 		super("게시판");
 		setLayout(null);
-		
-		JLabel label = new JLabel("게시판");
+		MemberDao mdao = MemberDao.getInstance();
+		String user = mdao.getLoginUser().getName();
+		JLabel label = new JLabel("["+user+"] 님의 게시판");
 		label.setBounds(10, 10, 120, 15);
 		add(label);
 		

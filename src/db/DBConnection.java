@@ -31,6 +31,8 @@ public class DBConnection {
 		// properties
 		// -> Connection url주소 복사해서 가져오기
 		try {
+//			conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "hr", "hr");
+		// 맥용 
 			conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "hr", "hr");
 			System.out.println("DB Connection Success!");
 		} catch (SQLException e) {

@@ -129,10 +129,10 @@ public class LoginView extends Frame implements WindowListener, ActionListener {
 			pwTxt.setText("");
 			
 			if(dto!=null) {
+				dao.setLoginId(id);
+				JOptionPane.showMessageDialog(null, dao.getLoginId()+ "님, 로그인 성공!");
 				dispose();
 				new BbsListView();
-				JOptionPane.showMessageDialog(null, "로그인 성공!");
-				dao.setLoginId(id);
 			}
 			else {
 				JOptionPane.showMessageDialog(null, "로그인실패! \n아이디/패스워드를 잘못 입력했습니다.");

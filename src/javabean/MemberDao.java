@@ -44,9 +44,14 @@ public class MemberDao {
 		this.loginId = loginId;
 	}
 
+	public MemberDto getLoginUser() {
+		return loginUser;
+	}
+
 	
 	
 	
+
 
 	public MemberDao() {
 		// TODO Auto-generated constructor stub
@@ -67,8 +72,7 @@ public class MemberDao {
 		return b;
 		
 	}	
-	// 로그인계정 
-
+	// 로그인
 	public  MemberDto login(String id, String pwd) {
 			String sql = " SELECT ID, NAME, EMAIL, AUTH "
 					+ " FROM MEMBER "
@@ -115,7 +119,7 @@ public class MemberDao {
 				DBClose.close(psmt, conn, rs);
 				
 			}
-			
+		this.loginUser = loginUser;
 		return loginUser;
 	
 }

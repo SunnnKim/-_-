@@ -91,8 +91,8 @@ public class BbsWriteView extends JFrame implements ActionListener {
 		
 		
 	
-		setVisible(true);
 		setBounds(500, 100, 400, 480);
+		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	
 	}

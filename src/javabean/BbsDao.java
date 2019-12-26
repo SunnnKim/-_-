@@ -23,7 +23,11 @@ import dto.BbsDto;
 public class BbsDao {
 	
 	private static BbsDao dao = new BbsDao();
+	private BbsDto selectedBbs;
 	
+	
+
+
 	private BbsDao() {
 		// TODO Auto-generated constructor stub
 	}
@@ -127,10 +131,278 @@ public class BbsDao {
 			DBClose.close(psmt, conn, rs);
 		}
 		
-		
-		
-		
-		
 		return write;
+	}
+	
+	
+	// 시퀀스 번호 가져오기 
+	public int getSequenceNum(BbsDto dto) {
+		this.selectedBbs = dto;
+		int sequence = -1;
+		sequence = selectedBbs.getSeq();
+		
+		return sequence;
+	}
+	
+	//
+	public BbsDto getSelectedBbs(int sequenceNum) {
+		BbsDto selectedDto = new BbsDto();
+		
+		String sql = " SELECT * "
+					+" FROM BBS "
+					+" WHERE SEQ = ? ";
+	System.out.println("sql : " + sql);
+
+	
+	// 기본셋팅
+	PreparedStatement psmt = null;
+	Connection conn = null;
+	ResultSet rs = null;
+	
+	
+	try {
+		
+		conn = DBConnection.getConnection();
+		psmt = conn.prepareStatement(sql);
+		psmt.setInt(1, sequenceNum);
+		
+		
+		rs = psmt.executeQuery();
+		
+		
+		if(rs.next()) {
+			selectedDto.setSeq(rs.getInt(1));
+			selectedDto.setId(rs.getString(2)); 
+			selectedDto.setTitle(rs.getString(3)); 
+			selectedDto.setContents(rs.getString(4));
+			selectedDto.setWdate(rs.getString(5));
+			selectedDto.setDel(rs.getInt(6));
+			selectedDto.setReadcount(rs.getInt(7));
+		}
+		
+	} catch (SQLException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	finally {
+		DBClose.close(psmt, conn, rs);
+	}
+	              
+		return selectedDto;
+	}
+	
+	
+	
+	
+	
+	
+	// 내가 쓴글인지 확인하기
+	 public boolean checkMyBbs(int sequenceNum) {
+		boolean check = false;
+		 if( selectedBbs.getSeq() == sequenceNum ) {
+			 check = true;
+		 }
+		 
+		 return check;
+	 }
+	 
+	// 조회수 올리기 
+	public boolean readBbs(int sequenceNum) {
+		
+		String sql = " UPDATE BBS "
+					+" SET READCOUNT = READCOUNT + 1 "
+					+" WHERE SEQ = ? ";
+		
+		System.out.println("sql : " + sql);
+
+		
+		// 기본셋팅
+		PreparedStatement psmt = null;
+		Connection conn = null;
+		ResultSet rs = null;
+		boolean b = false;
+		
+		try {
+			
+			conn = DBConnection.getConnection();
+			psmt = conn.prepareStatement(sql);
+			psmt.setInt(1,sequenceNum);
+			
+			rs = psmt.executeQuery();
+			if(rs.next()) {
+				b = true;
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally {
+			DBClose.close(psmt, conn, rs);
+		}
+		
+		
+		
+		
+		return b;
+		
+	}
+	
+	
+	// 글수정하기
+	public boolean update(String title, String content, int sequenceNum) {
+		
+		String sql = " UPDATE BBS"
+				   + " SET TITLE = ? , CONTENT = ?, WDATE = SYSDATE "
+				   + " WHERE SEQ = ? ";
+		
+		
+		System.out.println("sql : " + sql);
+
+		
+		// 기본셋팅
+		PreparedStatement psmt = null;
+		Connection conn = null;
+		ResultSet rs = null;
+		boolean b = false;
+		int count =0;
+		
+		try {
+			
+			conn = DBConnection.getConnection();
+			psmt = conn.prepareStatement(sql);
+			psmt.setString(1,title);
+			psmt.setString(2,content);
+			psmt.setInt(3, sequenceNum);
+			
+			count = psmt.executeUpdate();
+			if(count > 0) {
+				b = true;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally {
+			DBClose.close(psmt, conn, rs);
+		}
+		
+		
+		
+		
+		return b;
+	}
+	
+	
+	
+	// 글 삭제하기
+	
+	public boolean deleteBbs(int sequenceNum) {
+		
+		
+		String sql = " DELETE FROM BBS"
+					+" WHERE SEQ = ? ";
+
+		System.out.println("sql : " + sql);
+
+		
+		// 기본셋팅
+		PreparedStatement psmt = null;
+		Connection conn = null;
+		ResultSet rs = null;
+		boolean b = false;
+		int count =0;
+		
+		try {
+			
+			conn = DBConnection.getConnection();
+			psmt = conn.prepareStatement(sql);
+			psmt.setInt(1, sequenceNum);
+			
+			count = psmt.executeUpdate();
+			if(count > 0) {
+				b = true;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally {
+			DBClose.close(psmt, conn, rs);
+		}
+		
+		return b;
+		
+		
+	}
+	
+	// Search
+	
+	public ArrayList<BbsDto> searchBbs(int choice, String str) {
+		// 1. 제목으로 찾기
+		ArrayList<BbsDto> searchList = new ArrayList<BbsDto>();
+		String sql = "";
+		String searchStr = "%" + str.trim() +"%";
+		if( choice == 1 ) {	// 제목으로 검색
+			sql =		 " SELECT * "
+						+" FROM BBS"
+						+" WHERE TITLE LIKE ? ";
+			
+		}
+		else if (choice == 2) {	// 내용으로 검색
+			sql = " SELECT * "
+					+" FROM BBS"
+					+" WHERE CONTENT LIKE ? ";
+		
+		}
+		else if (choice ==3) {	// 작성자로 검색
+			sql = " SELECT * "
+					+" FROM BBS"
+					+" WHERE ID LIKE ? ";
+			
+		}
+		
+		
+		
+		
+		System.out.println("sql : " + sql);
+		// 기본셋팅
+		PreparedStatement psmt = null;
+		Connection conn = null;
+		ResultSet rs = null;
+		
+		try {
+			
+			conn = DBConnection.getConnection();
+			psmt = conn.prepareStatement(sql);
+			psmt.setString(1, searchStr);
+			
+			rs = psmt.executeQuery();
+			
+			// 리스트에 담기
+			while(rs.next()) {
+				BbsDto dto = new BbsDto();
+				dto.setSeq(rs.getInt(1));
+				dto.setId(rs.getString(2));
+				dto.setTitle(rs.getString(3));
+				dto.setContents(rs.getString(4));
+				dto.setWdate(rs.getString(5));
+				dto.setDel(rs.getInt(6));
+				dto.setReadcount(rs.getInt(7));
+				
+				searchList.add(dto);
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally {
+			DBClose.close(psmt, conn, rs);
+		}
+		
+		
+		
+		return searchList;
 	}
 }

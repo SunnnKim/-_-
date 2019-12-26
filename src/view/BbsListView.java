@@ -1,33 +1,38 @@
 package view;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JScrollBar;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 import dto.BbsDto;
-import dto.MemberDto;
 import javabean.BbsDao;
 import javabean.MemberDao;
 
-public class BbsListView extends JFrame implements MouseListener {
+public class BbsListView extends JFrame implements MouseListener, ItemListener {
 
 	private JTable jtable;
 	private JScrollPane jscrPane;
+	private JButton search;
+	private JTextField searchTxt;
+	private JComboBox<String> choice;
+	boolean searchCheck;
+	
 	
 	private JButton writeBtn;
 	String columnNames[] = {
@@ -36,8 +41,9 @@ public class BbsListView extends JFrame implements MouseListener {
 	
 	Object rowData[][];
 	DefaultTableModel model;	// 테이블의 넓이, 폭 등을 설정하기 위해 필요함
-	List<BbsDto> list = null;
+	List<BbsDto> list = null;	// 전체 데이터
 	
+	//TODO: 생성자1 
 	public BbsListView() {
 		super("게시판");
 		setLayout(null);
@@ -50,8 +56,6 @@ public class BbsListView extends JFrame implements MouseListener {
 		// dao를 통해서 list를 취득한다
 		BbsDao dao = BbsDao.getInstance();
 		list = dao.getBbsList();
-		
-		
 		//jtable row생성
 		rowData = new Object[list.size()][3];
 		// list에서 테이블로 데이터를 삽입하기 위한 처리
@@ -60,27 +64,38 @@ public class BbsListView extends JFrame implements MouseListener {
 			rowData[i][0] = i+1; 	// 글번호 (**시퀀스 번호 아님**)
 			rowData[i][1] = dto.getTitle(); 	// 글제목
 			rowData[i][2] = dto.getId(); 	// 작성자
-			
+			  
 		}
 		
 		// Table 관련 
 		// 1. 테이블 폭을 설정하기 위한 Model
-		model = new DefaultTableModel(columnNames, 0);	// (폭,높이)
+		model = new DefaultTableModel(columnNames, 0) {	// (폭,높이)
+			@Override
+			public boolean isCellEditable(int row, int column) {  //수정, 입력 불가
+				return false;
+			}
+		};
+		
 		model.setDataVector(rowData, columnNames); // (실제데이터:2차원배열, 범주)
 		
 		// Jtable
 		jtable = new JTable(model);
 		jtable.addMouseListener(this);
-		
+
 		
 		// column의 폭을 설정
 		jtable.getColumnModel().getColumn(0).setMaxWidth(50);// 번호가 들어갈 곳의 폭
 		jtable.getColumnModel().getColumn(1).setMaxWidth(500);// 제목 폭
 		jtable.getColumnModel().getColumn(2).setMaxWidth(200);// 작성자 폭
+		
 		// 테이블 크기와 위치 설정
 		jscrPane = new JScrollPane(jtable);
 		jscrPane.setBounds(10, 50, 600, 300);
 		add(jscrPane);
+		
+		
+		
+		
 		
 		writeBtn = new JButton("글쓰기");
 		writeBtn.setBounds(510, 10, 100, 20);
@@ -89,11 +104,186 @@ public class BbsListView extends JFrame implements MouseListener {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				dispose();
 				new BbsWriteView();
 			}
 		});
+		
+		
+		// TODO:검색결과
+		// 검색 콤보
+		String[] str = {"---","제목", "내용", "작성자"};
+		choice = new JComboBox<String>(str);
+		choice.setBounds(10, 370, 80, 20);
+		choice.setSelectedIndex(0);
+		System.out.println(choice.getSelectedItem());
+		add(choice);
+		choice.addItemListener(this);
+		
+		searchTxt = new JTextField();
+		searchTxt.setBounds(110, 370, 400, 20);
+		add(searchTxt);
+		
+		
+		// 검색버튼 눌렀을때 
+		search = new JButton("검색");
+		search.setBounds(520, 370, 80, 20);
+		search.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int choiceNum = choice.getSelectedIndex();
+				List<BbsDto> sList;	// 검색결과를 담을 리스트
+				
+				 if(choiceNum == 1) {
+					JOptionPane.showMessageDialog(null, "제목으로 찾기");
+					sList = dao.searchBbs(1, searchTxt.getText().trim());
+					
+				}
+				else if(choiceNum == 2) {
+					JOptionPane.showMessageDialog(null, "내용으로 찾기");
+					sList = dao.searchBbs(2, searchTxt.getText().trim());
+				}
+				else if(choiceNum == 3) {
+					JOptionPane.showMessageDialog(null, "작성자로 찾기");
+					sList = dao.searchBbs(3, searchTxt.getText().trim());
+				}
+				else {
+					JOptionPane.showMessageDialog(null, "전체보기");
+					sList = dao.getBbsList();
+				}
+				  	dispose();
+					new BbsListView(sList);
+					return;
+			}
+		});
+		add(search);
+		
+		
+		
+		setBounds(100, 100, 640, 480);
+		setBackground(new Color(0,0,128));
+		setVisible(true);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+	
+	//TODO:생성자2
+	public BbsListView( List<BbsDto> sList) {
+		super("게시판");
+		setLayout(null);
+		list = sList;
+		MemberDao mdao = MemberDao.getInstance();
+		String user = mdao.getLoginUser().getName();
+		JLabel label = new JLabel("["+user+"] 님의 게시판");
+		label.setBounds(10, 10, 120, 15);
+		add(label);
+		
+		// dao를 통해서 list를 취득한다
+		BbsDao dao = BbsDao.getInstance();
+		
+		//jtable row생성
+		rowData = new Object[sList.size()][3];
+		// list에서 테이블로 데이터를 삽입하기 위한 처리
+		for (int i = 0; i < sList.size(); i++) {
+			BbsDto dto = sList.get(i);
+			rowData[i][0] = i+1; 	// 글번호 (**시퀀스 번호 아님**)
+			rowData[i][1] = dto.getTitle(); 	// 글제목
+			rowData[i][2] = dto.getId(); 	// 작성자
+			  
+		}
+		
+		// Table 관련 
+		// 1. 테이블 폭을 설정하기 위한 Model
+		model = new DefaultTableModel(columnNames, 0) {	// (폭,높이)
+			@Override
+			public boolean isCellEditable(int row, int column) {  //수정, 입력 불가
+				return false;
+			}
+		};
+		
+		model.setDataVector(rowData, columnNames); // (실제데이터:2차원배열, 범주)
+		
+		// Jtable
+		jtable = new JTable(model);
+		jtable.addMouseListener(this);
+
+		
+		// column의 폭을 설정
+		jtable.getColumnModel().getColumn(0).setMaxWidth(50);// 번호가 들어갈 곳의 폭
+		jtable.getColumnModel().getColumn(1).setMaxWidth(500);// 제목 폭
+		jtable.getColumnModel().getColumn(2).setMaxWidth(200);// 작성자 폭
+		
+		// 테이블 크기와 위치 설정
+		jscrPane = new JScrollPane(jtable);
+		jscrPane.setBounds(10, 50, 600, 300);
+		add(jscrPane);
+		
+		
+		
+		
+		
+		writeBtn = new JButton("글쓰기");
+		writeBtn.setBounds(510, 10, 100, 20);
+		add(writeBtn);
+		writeBtn.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+				new BbsWriteView();
+			}
+		});
+		
+		
+		// TODO:검색결과
+		// 검색 콤보
+		String[] str = {"---","제목", "내용", "작성자"};
+		choice = new JComboBox<String>(str);
+		choice.setBounds(10, 370, 80, 20);
+		choice.setSelectedIndex(0);
+		System.out.println(choice.getSelectedItem());
+		add(choice);
+		choice.addItemListener(this);
+		
+		searchTxt = new JTextField();
+		searchTxt.setBounds(110, 370, 400, 20);
+		add(searchTxt);
+		
+		
+		// 검색버튼 눌렀을때 
+		search = new JButton("검색");
+		search.setBounds(520, 370, 80, 20);
+		search.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int choiceNum = choice.getSelectedIndex();
+				List<BbsDto> sList;	// 검색결과를 담을 리스트
+				
+				 if(choiceNum == 1) {
+					JOptionPane.showMessageDialog(null, "제목으로 찾기");
+					sList = dao.searchBbs(1, searchTxt.getText().trim());
+					
+				}
+				else if(choiceNum == 2) {
+					JOptionPane.showMessageDialog(null, "내용으로 찾기");
+					sList = dao.searchBbs(2, searchTxt.getText().trim());
+				}
+				else if(choiceNum == 3) {
+					JOptionPane.showMessageDialog(null, "작성자로 찾기");
+					sList = dao.searchBbs(3, searchTxt.getText().trim());
+				}
+				else {
+					JOptionPane.showMessageDialog(null, "전체보기");
+					sList = dao.getBbsList();
+				}
+				 
+				 	
+				 	dispose();
+					new BbsListView(sList);
+					return;
+			}
+		});
+		add(search);
+		
 		
 		
 		setBounds(100, 100, 640, 480);
@@ -103,11 +293,23 @@ public class BbsListView extends JFrame implements MouseListener {
 	}
 	
 	
-	
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
+		
+		if(e.getClickCount() == 2 ) {
+		BbsDao dao = BbsDao.getInstance();
+		JTable clickedTable = (JTable)e.getSource();
+		// 더블클릭하면 들어가짐 
+		int rowNum = clickedTable.getSelectedRow();
+		System.out.println("rowNum : "+rowNum);
+		BbsDto selecteDto = list.get(rowNum);
+		int sequenceNum = dao.getSequenceNum(selecteDto);
+		dao.readBbs(sequenceNum); // 조회수 올리기
+		dispose();
+		new ShowBbsView(sequenceNum);
+		}
+		
 		
 	}
 
@@ -116,6 +318,7 @@ public class BbsListView extends JFrame implements MouseListener {
 	@Override
 	public void mousePressed(MouseEvent e) {
 		// TODO Auto-generated method stub
+		
 		
 	}
 
@@ -144,4 +347,52 @@ public class BbsListView extends JFrame implements MouseListener {
 		
 	}
 
+
+	
+	// 검색 콤보 선택했을때 
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
+//	// 테이블 갱신을 위한 함수
+//	public void showSearch(List<BbsDto> sList) {
+//		
+//		this.list = sList;
+//		
+//		//jtable row생성
+//		rowData = new Object[list.size()][3];
+//		
+//		// list에서 테이블로 데이터를 삽입하기 위한 처리
+//		for (int i = 0; i < list.size(); i++) {
+//			BbsDto dto = list.get(i);
+//			rowData[i][0] = i+1; 	// 글번호 (**시퀀스 번호 아님**)
+//			rowData[i][1] = dto.getTitle(); 	// 글제목
+//			rowData[i][2] = dto.getId(); 	// 작성자
+//			  
+//		}
+//		
+//		// Table 관련 
+//		// 1. 테이블 폭을 설정하기 위한 Model
+//		model.setNumRows(0);
+//		DefaultTableModel  model1 = new DefaultTableModel(columnNames, 0) {	// (폭,높이)
+//			@Override
+//			public boolean isCellEditable(int row, int column) {  //수정, 입력 불가
+//				return false;
+//			}
+//		};
+//		
+//		model1.setDataVector(rowData, columnNames); // (실제데이터:2차원배열, 범주)
+//	
+//	
+//		// column의 폭을 설정
+//		jtable.getColumnModel().getColumn(0).setMaxWidth(50);// 번호가 들어갈 곳의 폭
+//		jtable.getColumnModel().getColumn(1).setMaxWidth(500);// 제목 폭
+//		jtable.getColumnModel().getColumn(2).setMaxWidth(200);// 작성자 폭
+//		System.out.println("출력확인?");
+//		jtable.setModel(model1);
+//	}
 }

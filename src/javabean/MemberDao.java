@@ -31,7 +31,6 @@ public class MemberDao {
 	// MemberDao는 
 	// 어디서나 접근 가능하도록 싱글턴으로 만든다
 	private static MemberDao mem = null;
-	private InsertClass im;
 	private MemberDto loginUser;
 	private String loginId;
 	
@@ -49,12 +48,8 @@ public class MemberDao {
 	}
 
 	
-	
-	
-
 
 	public MemberDao() {
-		// TODO Auto-generated constructor stub
 	}
 	
 	public static MemberDao getInstance() {
@@ -63,14 +58,60 @@ public class MemberDao {
 		}
 		return mem;
 	}
+	
+	// join 
 	public boolean addMember(MemberDto dto) {
 		
 		// DB에 Member를 추가하는 작업
+	 
+		String id = dto.getId();
+		String pwd = dto.getPwd();
+		String name = dto.getName();
+		String email = dto.getEmail();
+		int auth = dto.getAuth();
+
 		
-		im = new InsertClass();
-		boolean b = im.insertMember(dto);
+		// AUTH : 관리자 0, 유저 1 
+		String sql = " INSERT INTO MEMBER ( ID, PWD, NAME, EMAIL, AUTH ) " +
+			 " VALUES ( ?, ?, ?, ?, ? ) ";
+		
+		System.out.println("sql : " + sql);
+		
+		// 기본셋팅
+		PreparedStatement psmt = null;
+		Connection conn = null;
+		ResultSet rs = null;
+		boolean b =false;
+		
+		try {
+			
+			conn = DBConnection.getConnection();
+			psmt = conn.prepareStatement(sql);
+			psmt.setString(1,id);
+			psmt.setString(2,pwd);
+			psmt.setString(3,name);
+			psmt.setString(4,email);
+			psmt.setInt(5,auth);
+			
+			// 쿼리 실행하기
+			rs = psmt.executeQuery();
+			// 업데이트여부 count변수에 담기 
+			if(rs.next()) b =true;
+			
+		
+		
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		finally {
+			DBClose.close(psmt, conn, rs);
+			
+		}
+		
+		
 		return b;
-		
 	}	
 	// 로그인
 	public  MemberDto login(String id, String pwd) {
@@ -104,8 +145,8 @@ public class MemberDao {
 					String _id = rs.getString(1);
 					String _name = rs.getString(2);
 					String _email= rs.getString(3);
-					
-					loginUser = new MemberDto(_id, null, _name, _email, 1);
+					int auth= rs.getInt(4);
+					loginUser = new MemberDto(_id, null, _name, _email, auth);
 				}
 				
 			
@@ -126,6 +167,7 @@ public class MemberDao {
 	
 	
 	
+	// 아이디 정규화방식
 	
 	
 	

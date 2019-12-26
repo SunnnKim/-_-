@@ -146,6 +146,7 @@ public class JoinView extends Frame implements WindowListener, ActionListener{
 			String name = txt[2].getText();
 			String email = txt[3].getText();
 			int auth = 1;
+			if(id.equals("admin")) auth = 0;
 			for (int i = 0; i < txt.length; i++) {
 				txt[i].setText("");
 			}

@@ -11,6 +11,7 @@ public class BbsDto {
 	READCOUNT NUMBER(8) NOT NULL
 );
 
+
 	 */
 	private int seq;
 	private String id;

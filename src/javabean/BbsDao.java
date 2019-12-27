@@ -39,11 +39,25 @@ public class BbsDao {
 	}
 	
 	// 게시판에 모든 글 뿌려주기  
-	public List<BbsDto> getBbsList(){
-		String sql =  " SELECT SEQ, ID, TITLE, CONTENT, "
-					+ " WDATE, DEL, READCOUNT "
-					+ " FROM BBS "
-					+ " ORDER BY WDATE DESC ";
+	public List<BbsDto> getBbsList(int page){
+		
+		String sql =  " SELECT SEQ, ID, TITLE, CONTENT, WDATE, DEL, READCOUNT "
+					+ " FROM  (SELECT ROWNUM r, SEQ, ID, TITLE, CONTENT, WDATE, DEL, READCOUNT "
+							+ " FROM  ( SELECT *  "
+									+ " FROM BBS "
+									+ " WHERE DEL <> 1  "
+									+ " ORDER BY WDATE DESC ) ) "
+					+ " WHERE ? < r AND r <= ? ";
+				
+		/*
+		 SELECT SEQ, ID, TITLE, CONTENT, WDATE, DEL, READCOUNT
+		FROM  (SELECT ROWNUM r, SEQ, ID,TITLE, CONTENT, WDATE, DEL, READCOUNT
+				FROM   (SELECT * 
+						FROM BBS 
+						WHERE DEL <>1 
+						ORDER BY WDATE DESC) ) 
+		WHERE 0 < r AND r <= 3
+		 */
 		
 		Connection conn = null;	// DB CONNECTION 
 		PreparedStatement psmt = null;	// SQL
@@ -53,11 +67,15 @@ public class BbsDao {
 		List<BbsDto> list = new ArrayList<BbsDto>();
 		
 		try {
-			
+			int rowNum = 10;
 			conn = DBConnection.getConnection();
 			psmt = conn.prepareStatement(sql);
-			rs = psmt.executeQuery();	// select 는 executeQuery, 나머지는 executeUpdate
+			psmt.setInt(1, (page-1)*rowNum);
+			psmt.setInt(2, page * rowNum);
 			
+			
+			rs = psmt.executeQuery();	// select 는 executeQuery, 나머지는 executeUpdate
+			// 마지막 페이지일때는 null리턴 
 			while(rs.next()) {
 				BbsDto dto = new BbsDto(rs.getInt(1),//seq, 
 										rs.getString(2),//id,
@@ -68,7 +86,7 @@ public class BbsDao {
 										rs.getInt(7));//readcount
 				list.add(dto);
 			}
-			
+		
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -300,7 +318,8 @@ public class BbsDao {
 	public boolean deleteBbs(int sequenceNum) {
 		
 		
-		String sql = " DELETE FROM BBS"
+		String sql = " UPDATE BBS "
+				    +" SET DEL = 1 "
 					+" WHERE SEQ = ? ";
 
 		System.out.println("sql : " + sql);
@@ -338,27 +357,51 @@ public class BbsDao {
 	
 	// Search
 	
-	public ArrayList<BbsDto> searchBbs(int choice, String str) {
+	public ArrayList<BbsDto> searchBbs(int choice, String str, int page) {
 		// 1. 제목으로 찾기
 		ArrayList<BbsDto> searchList = new ArrayList<BbsDto>();
 		String sql = "";
 		String searchStr = "%" + str.trim() +"%";
+		
+		/* 페이징되는 쿼리문
+		 SELECT SEQ, ID, TITLE, CONTENT, WDATE, DEL, READCOUNT
+			FROM  (SELECT ROWNUM r, SEQ, ID,TITLE, CONTENT, WDATE, DEL, READCOUNT
+					FROM   (SELECT * 
+							FROM BBS 
+							WHERE DEL <>1 AND CONTENT LIKE '%1%'
+							ORDER BY WDATE DESC) ) 
+		 
+		 */
+		
+		
 		if( choice == 1 ) {	// 제목으로 검색
-			sql =		 " SELECT * "
-						+" FROM BBS"
-						+" WHERE TITLE LIKE ? ";
-			
+			sql =" SELECT SEQ, ID, TITLE, CONTENT, WDATE, DEL, READCOUNT "
+				+" FROM   (SELECT ROWNUM r, SEQ, ID,TITLE, CONTENT, WDATE, DEL, READCOUNT "
+						+" FROM   (SELECT *  "
+							   + " FROM BBS "
+							   + " WHERE DEL <>1 AND TITLE LIKE ? "
+							   + " ORDER BY WDATE DESC) ) "
+			  + " WHERE ? < r AND r <= ? ";
+	
 		}
 		else if (choice == 2) {	// 내용으로 검색
-			sql = " SELECT * "
-					+" FROM BBS"
-					+" WHERE CONTENT LIKE ? ";
-		
+			sql =" SELECT SEQ, ID, TITLE, CONTENT, WDATE, DEL, READCOUNT "
+				+" FROM   (SELECT ROWNUM r, SEQ, ID,TITLE, CONTENT, WDATE, DEL, READCOUNT "
+						+" FROM   (SELECT *  "
+							   + " FROM BBS "
+							   + " WHERE DEL <>1 AND CONTENT LIKE ? "
+							   + " ORDER BY WDATE DESC) ) "
+				+" WHERE ? < r AND r <= ? ";
 		}
-		else if (choice ==3) {	// 작성자로 검색
-			sql = " SELECT * "
-					+" FROM BBS"
-					+" WHERE ID LIKE ? ";
+		else if (choice == 3) {	// 작성자로 검색
+			sql =" SELECT SEQ, ID, TITLE, CONTENT, WDATE, DEL, READCOUNT "
+				+" FROM   (SELECT ROWNUM r, SEQ, ID,TITLE, CONTENT, WDATE, DEL, READCOUNT "
+						+" FROM   (SELECT *  "
+							   + " FROM BBS "
+							   + " WHERE DEL <>1 AND ID = ? "
+							   + " ORDER BY WDATE DESC) ) "
+				+" WHERE ? < r AND r <= ? ";
+			searchStr = str.trim();
 			
 		}
 		
@@ -372,10 +415,13 @@ public class BbsDao {
 		ResultSet rs = null;
 		
 		try {
-			
+			// 바꿀부분
+			int rowNum = 10;
 			conn = DBConnection.getConnection();
 			psmt = conn.prepareStatement(sql);
 			psmt.setString(1, searchStr);
+			psmt.setInt(2, (page-1)*rowNum);
+			psmt.setInt(3, page * rowNum);
 			
 			rs = psmt.executeQuery();
 			
@@ -400,8 +446,6 @@ public class BbsDao {
 		finally {
 			DBClose.close(psmt, conn, rs);
 		}
-		
-		
 		
 		return searchList;
 	}

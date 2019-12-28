@@ -263,11 +263,20 @@ public class BbsListView extends JFrame implements MouseListener, ItemListener, 
 		}
 		// 검색하기 
 		if( btn == search ) {
+			
 			searchCheck = true;
 			choiceNum = choice.getSelectedIndex();
 			searchStr = searchTxt.getText().trim();
 			searchTxt.setText("");
+			// 빈문자열일때는 경고메세지 띄우기
+			if(searchStr.equals("") && choiceNum!=0) {
+				JOptionPane.showMessageDialog(null, "검색어를 입력하시오");
+				return;
+			}
 			switch (choiceNum) {
+			case 0:
+				JOptionPane.showMessageDialog(null, "찾을 목록을 선택하세요!");
+				return;
 			case 1:
 				JOptionPane.showMessageDialog(null, "제목으로 찾기");
 				break;
@@ -281,10 +290,8 @@ public class BbsListView extends JFrame implements MouseListener, ItemListener, 
 			}
 			nowPage = 1;
 			getSearchList(choiceNum, nowPage);
-			//
-				System.out.println(list.get(0).toString());
-			 	this.showSearch(list);
-				return;
+		 	this.showSearch(list);
+			return;
 			
 		}
 		// 이전 페이지 
@@ -365,10 +372,6 @@ public class BbsListView extends JFrame implements MouseListener, ItemListener, 
 			}
 			else if(choiceNum == 3) {
 				list = dao.searchBbs(3, searchStr,page);
-			}
-			else if(choiceNum == 0){
-				list = dao.getBbsList(page);
-				searchCheck  = false;
 			}
 	}
 }

@@ -113,7 +113,7 @@ public class MemberDao {
 		
 		return b;
 	}	
-	// 로그인
+	// 로그인 -> 아이디 넘겨주기 
 	public  MemberDto login(String id, String pwd) {
 			String sql = " SELECT ID, NAME, EMAIL, AUTH "
 					+ " FROM MEMBER "

@@ -169,43 +169,43 @@ public class BbsDao {
 		String sql = " SELECT * "
 					+" FROM BBS "
 					+" WHERE SEQ = ? ";
-	System.out.println("sql : " + sql);
-
+		System.out.println("sql : " + sql);
 	
-	// 기본셋팅
-	PreparedStatement psmt = null;
-	Connection conn = null;
-	ResultSet rs = null;
-	
-	
-	try {
 		
-		conn = DBConnection.getConnection();
-		psmt = conn.prepareStatement(sql);
-		psmt.setInt(1, sequenceNum);
+		// 기본셋팅
+		PreparedStatement psmt = null;
+		Connection conn = null;
+		ResultSet rs = null;
 		
 		
-		rs = psmt.executeQuery();
-		
-		
-		if(rs.next()) {
-			selectedDto.setSeq(rs.getInt(1));
-			selectedDto.setId(rs.getString(2)); 
-			selectedDto.setTitle(rs.getString(3)); 
-			selectedDto.setContents(rs.getString(4));
-			selectedDto.setWdate(rs.getString(5));
-			selectedDto.setDel(rs.getInt(6));
-			selectedDto.setReadcount(rs.getInt(7));
+		try {
+			
+			conn = DBConnection.getConnection();
+			psmt = conn.prepareStatement(sql);
+			psmt.setInt(1, sequenceNum);
+			
+			
+			rs = psmt.executeQuery();
+			
+			
+			if(rs.next()) {
+				selectedDto.setSeq(rs.getInt(1));
+				selectedDto.setId(rs.getString(2)); 
+				selectedDto.setTitle(rs.getString(3)); 
+				selectedDto.setContents(rs.getString(4));
+				selectedDto.setWdate(rs.getString(5));
+				selectedDto.setDel(rs.getInt(6));
+				selectedDto.setReadcount(rs.getInt(7));
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		
-	} catch (SQLException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-	finally {
-		DBClose.close(psmt, conn, rs);
-	}
-	              
+		finally {
+			DBClose.close(psmt, conn, rs);
+		}
+		              
 		return selectedDto;
 	}
 	
@@ -258,9 +258,6 @@ public class BbsDao {
 		finally {
 			DBClose.close(psmt, conn, rs);
 		}
-		
-		
-		
 		
 		return b;
 		

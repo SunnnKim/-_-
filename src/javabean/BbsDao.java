@@ -208,21 +208,6 @@ public class BbsDao {
 		              
 		return selectedDto;
 	}
-	
-	
-	
-	
-	
-	
-	// 내가 쓴글인지 확인하기
-	 public boolean checkMyBbs(int sequenceNum) {
-		boolean check = false;
-		 if( selectedBbs.getSeq() == sequenceNum ) {
-			 check = true;
-		 }
-		 
-		 return check;
-	 }
 	 
 	// 조회수 올리기 
 	public boolean readBbs(int sequenceNum) {
